@@ -2,19 +2,29 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ADHD Traits Quiz</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 20px;
+      margin: 0;
+      padding: 0;
       background-color: #f0f8ff;
+    }
+    .card {
+      max-width: 600px;
+      margin: 40px auto;
+      background-color: #ffffff;
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+    }
+    .hidden {
+      display: none;
     }
     h1, h2 {
       color: #007acc;
-    }
-    .question {
-      margin-bottom: 15px;
     }
     label {
       display: block;
@@ -22,116 +32,160 @@
     }
     button {
       margin-top: 20px;
-      padding: 10px 15px;
+      padding: 10px 20px;
       background-color: #007acc;
       color: white;
       border: none;
       cursor: pointer;
+      border-radius: 5px;
+    }
+    #progressBarContainer {
+      width: 100%;
+      background-color: #ccc;
+      border-radius: 8px;
+      margin: 20px auto;
+      height: 20px;
+      overflow: hidden;
+    }
+    #progressBar {
+      width: 0%;
+      height: 100%;
+      background-color: #007acc;
+      transition: width 0.5s ease-in-out;
     }
     .results {
       margin-top: 30px;
       background-color: #e6f7ff;
       padding: 15px;
-      border-radius: 5px;
+      border-radius: 12px;
     }
   </style>
 </head>
 <body>
-  <h1>What Are Your Dominant ADHD Traits?</h1>
+  <div class="card" id="startSlide">
+    <h1>What Are Your Dominant ADHD Traits?</h1>
+    <p>This quiz helps identify common ADHD patterns so you can better understand your brain. Ready to noodle?</p>
+    <button onclick="nextSlide()">Start Quiz</button>
+  </div>
+
   <form id="quizForm">
     <div id="quizContainer"></div>
-    <button type="submit">Submit</button>
   </form>
-  <div class="results" id="results"></div>
+
+  <div class="card results hidden" id="results"></div>
+  <div id="progressBarContainer" class="hidden">
+    <div id="progressBar"></div>
+  </div>
 
   <script>
     const sections = [
-      {
-        title: "Emotional Hyperarousal",
-        code: "ehr",
-        questions: [
-          "I often feel emotions more intensely than others seem to.",
-          "I find it hard to calm down once something upsets me.",
-          "I can go from 0 to 100 emotionally in seconds.",
-          "Small things can cause big emotional reactions.",
-          "My mood can shift dramatically during the day."
-        ]
-      },
-      {
-        title: "Working Memory",
-        code: "wm",
-        questions: [
-          "I forget what I’m doing mid-task.",
-          "I walk into rooms and forget why I went in.",
-          "I struggle to follow multi-step instructions.",
-          "I lose track of conversations or forget important details.",
-          "I frequently misplace items like keys, phones, or glasses."
-        ]
-      },
-      {
-        title: "Inattentiveness",
-        code: "in",
-        questions: [
-          "I get distracted easily, even in important moments.",
-          "I have trouble finishing tasks without getting sidetracked.",
-          "I daydream or 'zone out' often.",
-          "I skip over instructions or forget parts of what I read.",
-          "I often need things repeated to understand or remember them."
-        ]
-      },
-      {
-        title: "Time Management",
-        code: "tm",
-        questions: [
-          "I underestimate how long things will take.",
-          "I procrastinate even on things I care about.",
-          "I feel like I'm always behind or rushing.",
-          "I have trouble sticking to schedules or routines.",
-          "I get overwhelmed when planning or prioritizing tasks."
-        ]
-      },
-      {
-        title: "Rejection Sensitive Dysphoria",
-        code: "rsd",
-        questions: [
-          "I often worry about being disliked or judged.",
-          "A small critique can feel like a personal attack.",
-          "I replay conversations in my head and feel embarrassed.",
-          "I fear letting people down or being seen as a failure.",
-          "I feel crushed by rejection, even if it’s minor."
-        ]
-      }
+      { title: "Emotional Hyperarousal", code: "ehr", questions: [
+        "I often feel emotions more intensely than others seem to.",
+        "I find it hard to calm down once something upsets me.",
+        "I can go from 0 to 100 emotionally in seconds.",
+        "Small things can cause big emotional reactions.",
+        "My mood can shift dramatically during the day."
+      ]},
+      { title: "Working Memory", code: "wm", questions: [
+        "I forget what I’m doing mid-task.",
+        "I walk into rooms and forget why I went in.",
+        "I struggle to follow multi-step instructions.",
+        "I lose track of conversations or forget important details.",
+        "I frequently misplace items like keys, phones, or glasses."
+      ]},
+      { title: "Inattentiveness", code: "in", questions: [
+        "I get distracted easily, even in important moments.",
+        "I have trouble finishing tasks without getting sidetracked.",
+        "I daydream or 'zone out' often.",
+        "I skip over instructions or forget parts of what I read.",
+        "I often need things repeated to understand or remember them."
+      ]},
+      { title: "Time Management", code: "tm", questions: [
+        "I underestimate how long things will take.",
+        "I procrastinate even on things I care about.",
+        "I feel like I'm always behind or rushing.",
+        "I have trouble sticking to schedules or routines.",
+        "I get overwhelmed when planning or prioritizing tasks."
+      ]},
+      { title: "Rejection Sensitive Dysphoria", code: "rsd", questions: [
+        "I often worry about being disliked or judged.",
+        "A small critique can feel like a personal attack.",
+        "I replay conversations in my head and feel embarrassed.",
+        "I fear letting people down or being seen as a failure.",
+        "I feel crushed by rejection, even if it’s minor."
+      ]}
     ];
 
     const container = document.getElementById("quizContainer");
+    let currentSection = -1;
 
-    sections.forEach(section => {
+    function nextSlide() {
+      document.getElementById("startSlide").classList.add("hidden");
+      document.getElementById("progressBarContainer").classList.remove("hidden");
+      currentSection = 0;
+      showSection(currentSection);
+    }
+
+    function showSection(index) {
+      container.innerHTML = "";
+      const section = sections[index];
       const sectionDiv = document.createElement("div");
+      sectionDiv.className = "card";
       sectionDiv.innerHTML = `<h2>${section.title}</h2>`;
+
       section.questions.forEach((q, idx) => {
         const qId = `${section.code}_${idx}`;
-        const questionDiv = document.createElement("div");
-        questionDiv.className = "question";
-        questionDiv.innerHTML = `
-          <label>${q}</label>
-          <label><input type="radio" name="${qId}" value="1" required> 1</label>
+        const qDiv = document.createElement("div");
+        qDiv.innerHTML = `
+          <label><strong>${q}</strong></label>
+          <label><input type="radio" name="${qId}" value="1"> 1</label>
           <label><input type="radio" name="${qId}" value="2"> 2</label>
           <label><input type="radio" name="${qId}" value="3"> 3</label>
           <label><input type="radio" name="${qId}" value="4"> 4</label>
           <label><input type="radio" name="${qId}" value="5"> 5</label>
         `;
-        sectionDiv.appendChild(questionDiv);
+        sectionDiv.appendChild(qDiv);
       });
-      container.appendChild(sectionDiv);
-    });
 
-    document.getElementById("quizForm").addEventListener("submit", function(event) {
-      event.preventDefault();
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = index === sections.length - 1 ? "Finish" : "Next";
+      btn.onclick = () => {
+        const inputs = sectionDiv.querySelectorAll("input[type=radio]");
+        const names = [...new Set([...inputs].map(input => input.name))];
+        const allAnswered = names.every(name => sectionDiv.querySelector(`input[name='${name}']:checked`));
+
+        if (!allAnswered) {
+          alert("Please answer all questions before continuing.");
+          return;
+        }
+
+        if (index === sections.length - 1) {
+          document.getElementById("quizForm").classList.add("hidden");
+          document.getElementById("progressBarContainer").classList.add("hidden");
+          showResults();
+        } else {
+          showSection(++currentSection);
+          updateProgress();
+        }
+      };
+
+      sectionDiv.appendChild(btn);
+      container.appendChild(sectionDiv);
+      updateProgress();
+    }
+
+    function updateProgress() {
+      const percentage = ((currentSection + 1) / sections.length) * 100;
+      document.getElementById("progressBar").style.width = percentage + "%";
+    }
+
+    function showResults() {
       const results = {};
       sections.forEach(section => {
         let total = 0;
         section.questions.forEach((_, idx) => {
-          const val = parseInt(document.querySelector(`input[name='${section.code}_${idx}']:checked`).value);
+          const val = parseInt(document.querySelector(`input[name='${section.code}_${idx}']:checked`)?.value || 0);
           total += val;
         });
         results[section.title] = Math.round((total / (section.questions.length * 5)) * 100);
@@ -142,8 +196,10 @@
         resultHTML += `<li><strong>${trait}:</strong> ${score}%</li>`;
       }
       resultHTML += "</ul>";
+      resultHTML += `<p><a href="mailto:?subject=My ADHD Traits Results&body=Here are my results:%0A${Object.entries(results).map(([k,v])=>`${k}: ${v}%`).join('%0A')}">Share via Email</a></p>`;
       document.getElementById("results").innerHTML = resultHTML;
-    });
+      document.getElementById("results").classList.remove("hidden");
+    }
   </script>
 </body>
 </html>
