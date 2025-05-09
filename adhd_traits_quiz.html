@@ -40,11 +40,13 @@
       border-radius: 5px;
     }
     #progressBarContainer {
+      max-width: 480px;
+      margin: 0 auto;
       width: 100%;
       background-color: #ccc;
       border-radius: 8px;
       margin: 20px auto;
-      height: 20px;
+      height: 30px;
       overflow: hidden;
     }
     #progressBar {
@@ -60,7 +62,18 @@
       border-radius: 12px;
     }
   </style>
+
+  <audio id="clickSound" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" preload="auto"></audio>
+  <style>
+    .summary-message {
+      font-size: 1.2em;
+      font-weight: bold;
+      margin-top: 20px;
+      text-align: center;
+    }
+  </style>
 </head>
+
 <body>
   <div class="card" id="startSlide">
     <h1>What Are Your Dominant ADHD Traits?</h1>
@@ -73,8 +86,9 @@
   </form>
 
   <div class="card results hidden" id="results"></div>
+  <div style="text-align:center;margin-bottom:5px;font-weight:bold;">Progress</div>
   <div id="progressBarContainer" class="hidden">
-    <div id="progressBar"></div>
+    <div id="progressBar"><span id="progressText" style="color:#fff;font-weight:bold;position:absolute;width:100%;text-align:center;transition: all 0.3s ease;" style="color:white;font-weight:bold;position:absolute;width:100%;text-align:center;">0%</span></div>
   </div>
 
   <script>
@@ -123,6 +137,7 @@
       document.getElementById("startSlide").classList.add("hidden");
       document.getElementById("progressBarContainer").classList.remove("hidden");
       currentSection = 0;
+      document.getElementById("clickSound").play();
       showSection(currentSection);
     }
 
@@ -163,6 +178,7 @@
         if (index === sections.length - 1) {
           document.getElementById("quizForm").classList.add("hidden");
           document.getElementById("progressBarContainer").classList.add("hidden");
+          document.getElementById("clickSound").play();
           showResults();
         } else {
           showSection(++currentSection);
@@ -178,6 +194,7 @@
     function updateProgress() {
       const percentage = ((currentSection + 1) / sections.length) * 100;
       document.getElementById("progressBar").style.width = percentage + "%";
+      document.getElementById("progressText").textContent = Math.round(percentage) + "%";
     }
 
     function showResults() {
@@ -185,10 +202,13 @@
       sections.forEach(section => {
         let total = 0;
         section.questions.forEach((_, idx) => {
-          const val = parseInt(document.querySelector(`input[name='${section.code}_${idx}']:checked`)?.value || 0);
+          const selected = document.querySelector(`input[name='${section.code}_${idx}']:checked`);
+          const val = selected ? parseInt(selected.value) : null;
           total += val;
         });
-        results[section.title] = Math.round((total / (section.questions.length * 5)) * 100);
+        const answeredCount = section.questions.filter((_, idx) => document.querySelector(`input[name='${section.code}_${idx}']:checked`)).length;
+        const maxScore = answeredCount * 5;
+        results[section.title] = maxScore ? Math.round((total / maxScore) * 100) : 0;
       });
 
       let resultHTML = "<h2>Your Results:</h2><ul>";
@@ -199,6 +219,7 @@
       resultHTML += `<p><a href="mailto:?subject=My ADHD Traits Results&body=Here are my results:%0A${Object.entries(results).map(([k,v])=>`${k}: ${v}%`).join('%0A')}">Share via Email</a></p>`;
       document.getElementById("results").innerHTML = resultHTML;
       document.getElementById("results").classList.remove("hidden");
+      document.getElementById("results").innerHTML += `<div class=\"summary-message\">Thanks for taking the quiz! Knowing your traits is the first step in mastering your noodle.</div>`;
     }
   </script>
 </body>
