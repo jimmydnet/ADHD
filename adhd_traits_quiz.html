@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ADHD Traits Quiz</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f0f8ff;
+    }
+    h1, h2 {
+      color: #007acc;
+    }
+    .question {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin: 5px 0;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 15px;
+      background-color: #007acc;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    .results {
+      margin-top: 30px;
+      background-color: #e6f7ff;
+      padding: 15px;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>What Are Your Dominant ADHD Traits?</h1>
+  <form id="quizForm">
+    <div id="quizContainer"></div>
+    <button type="submit">Submit</button>
+  </form>
+  <div class="results" id="results"></div>
+
+  <script>
+    const sections = [
+      {
+        title: "Emotional Hyperarousal",
+        code: "ehr",
+        questions: [
+          "I often feel emotions more intensely than others seem to.",
+          "I find it hard to calm down once something upsets me.",
+          "I can go from 0 to 100 emotionally in seconds.",
+          "Small things can cause big emotional reactions.",
+          "My mood can shift dramatically during the day."
+        ]
+      },
+      {
+        title: "Working Memory",
+        code: "wm",
+        questions: [
+          "I forget what I’m doing mid-task.",
+          "I walk into rooms and forget why I went in.",
+          "I struggle to follow multi-step instructions.",
+          "I lose track of conversations or forget important details.",
+          "I frequently misplace items like keys, phones, or glasses."
+        ]
+      },
+      {
+        title: "Inattentiveness",
+        code: "in",
+        questions: [
+          "I get distracted easily, even in important moments.",
+          "I have trouble finishing tasks without getting sidetracked.",
+          "I daydream or 'zone out' often.",
+          "I skip over instructions or forget parts of what I read.",
+          "I often need things repeated to understand or remember them."
+        ]
+      },
+      {
+        title: "Time Management",
+        code: "tm",
+        questions: [
+          "I underestimate how long things will take.",
+          "I procrastinate even on things I care about.",
+          "I feel like I'm always behind or rushing.",
+          "I have trouble sticking to schedules or routines.",
+          "I get overwhelmed when planning or prioritizing tasks."
+        ]
+      },
+      {
+        title: "Rejection Sensitive Dysphoria",
+        code: "rsd",
+        questions: [
+          "I often worry about being disliked or judged.",
+          "A small critique can feel like a personal attack.",
+          "I replay conversations in my head and feel embarrassed.",
+          "I fear letting people down or being seen as a failure.",
+          "I feel crushed by rejection, even if it’s minor."
+        ]
+      }
+    ];
+
+    const container = document.getElementById("quizContainer");
+
+    sections.forEach(section => {
+      const sectionDiv = document.createElement("div");
+      sectionDiv.innerHTML = `<h2>${section.title}</h2>`;
+      section.questions.forEach((q, idx) => {
+        const qId = `${section.code}_${idx}`;
+        const questionDiv = document.createElement("div");
+        questionDiv.className = "question";
+        questionDiv.innerHTML = `
+          <label>${q}</label>
+          <label><input type="radio" name="${qId}" value="1" required> 1</label>
+          <label><input type="radio" name="${qId}" value="2"> 2</label>
+          <label><input type="radio" name="${qId}" value="3"> 3</label>
+          <label><input type="radio" name="${qId}" value="4"> 4</label>
+          <label><input type="radio" name="${qId}" value="5"> 5</label>
+        `;
+        sectionDiv.appendChild(questionDiv);
+      });
+      container.appendChild(sectionDiv);
+    });
+
+    document.getElementById("quizForm").addEventListener("submit", function(event) {
+      event.preventDefault();
+      const results = {};
+      sections.forEach(section => {
+        let total = 0;
+        section.questions.forEach((_, idx) => {
+          const val = parseInt(document.querySelector(`input[name='${section.code}_${idx}']:checked`).value);
+          total += val;
+        });
+        results[section.title] = Math.round((total / (section.questions.length * 5)) * 100);
+      });
+
+      let resultHTML = "<h2>Your Results:</h2><ul>";
+      for (const [trait, score] of Object.entries(results)) {
+        resultHTML += `<li><strong>${trait}:</strong> ${score}%</li>`;
+      }
+      resultHTML += "</ul>";
+      document.getElementById("results").innerHTML = resultHTML;
+    });
+  </script>
+</body>
+</html>
